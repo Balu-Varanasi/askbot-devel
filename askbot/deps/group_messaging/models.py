@@ -4,7 +4,6 @@ from askbot.mail import send_mail #todo: remove dependency?
 from askbot.mail.messages import GroupMessagingEmailAlert
 from django.conf import settings as django_settings
 from django.contrib.auth.models import Group
-from django.contrib.auth.models import User
 from django.contrib.sites.models import Site
 from django.db import models
 from django.db.models import signals
@@ -18,6 +17,8 @@ from askbot.deps.group_messaging.signals import thread_created
 import copy
 import datetime
 import urllib
+
+from accounts.models import User
 
 MAX_HEADLINE_LENGTH = 80
 MAX_SUBJECT_LINE_LENGTH = 30
@@ -71,7 +72,7 @@ class LastVisitTime(models.Model):
     """just remembers when a user has
     last visited a given thread
     """
-    user = models.ForeignKey(User)
+    user = models.ForeignKey(django_settings.AUTH_USER_MODEL)
     message = models.ForeignKey('Message')
     at = models.DateTimeField(auto_now_add=True)
 
@@ -100,7 +101,7 @@ class SenderList(models.Model):
     as new messages are created
     """
     recipient = models.ForeignKey(Group, unique=True)
-    senders = models.ManyToManyField(User)
+    senders = models.ManyToManyField(django_settings.AUTH_USER_MODEL)
     objects = SenderListManager()
 
     class Meta:
@@ -125,7 +126,7 @@ class MessageMemo(models.Model):
         (ARCHIVED, 'archived'),
         (DELETED, 'deleted')
     )
-    user = models.ForeignKey(User)
+    user = models.ForeignKey(django_settings.AUTH_USER_MODEL)
     message = models.ForeignKey('Message', related_name='memos')
     status = models.SmallIntegerField(
             choices=STATUS_CHOICES, default=SEEN
@@ -299,7 +300,8 @@ class Message(models.Model):
         default=STORED,
     )
 
-    sender = models.ForeignKey(User, related_name='group_messaging_sent_messages')
+    sender = models.ForeignKey(django_settings.AUTH_USER_MODEL,
+                               related_name='group_messaging_sent_messages')
 
     #comma-separated list of a few names
     senders_info = models.TextField(default='')
@@ -525,7 +527,7 @@ class UnreadInboxCounter(models.Model):
     user, one has to get all groups user belongs to
     and add up the corresponding counts of unread messages.
     """
-    user = models.ForeignKey(User)
+    user = models.ForeignKey(django_settings.AUTH_USER_MODEL)
     count = models.PositiveIntegerField(default=0)
 
     def decrement(self):

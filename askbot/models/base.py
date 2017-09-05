@@ -1,9 +1,10 @@
+from django.conf import settings as django_settings
 from django.db import models
-from django.contrib.auth.models import User
 from django.utils import timezone
 from django.utils.html import strip_tags
 from askbot.conf import settings as askbot_settings
 from askbot.utils.markup import convert_text
+
 
 class BaseQuerySetManager(models.Manager):
     """Base class for chainable custom filters on the query sets.
@@ -49,7 +50,7 @@ class AnonymousContent(models.Model):
     wiki = models.BooleanField(default=False)
     added_at = models.DateTimeField(default=timezone.now)
     ip_addr = models.GenericIPAddressField(max_length=45) #allow high port numbers
-    author = models.ForeignKey(User,null=True)
+    author = models.ForeignKey(django_settings.AUTH_USER_MODEL, null=True)
     text = models.TextField()
 
     class Meta:
