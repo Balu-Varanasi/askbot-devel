@@ -1,6 +1,5 @@
 import re
 from django.db import models
-from django.contrib.auth.models import User
 from django.utils.translation import get_language
 from django.utils.translation import ugettext as _
 from django.utils.translation import ugettext_lazy
@@ -258,10 +257,11 @@ class Tag(models.Model):
     STATUS_ACCEPTED = 1
 
     name = models.CharField(max_length=255)
-    created_by = models.ForeignKey(User, related_name='created_tags')
+    created_by = models.ForeignKey(django_settings.AUTH_USER_MODEL,
+                                   related_name='created_tags')
     language_code = LanguageCodeField()
     suggested_by = models.ManyToManyField(
-        User, related_name='suggested_tags',
+        django_settings.AUTH_USER_MODEL, related_name='suggested_tags',
         help_text = 'Works only for suggested tags for tag moderation'
     )
 
@@ -272,7 +272,9 @@ class Tag(models.Model):
 
     deleted     = models.BooleanField(default=False)
     deleted_at  = models.DateTimeField(null=True, blank=True)
-    deleted_by  = models.ForeignKey(User, null=True, blank=True, related_name='deleted_tags')
+    deleted_by  = models.ForeignKey(django_settings.AUTH_USER_MODEL,
+                                    null=True, blank=True,
+                                    related_name='deleted_tags')
 
     tag_wiki = models.OneToOneField(
                                 'Post',
@@ -302,7 +304,8 @@ class MarkedTag(models.Model):
         ('subscribed', ugettext_lazy('subscribed')),
     )
     tag = models.ForeignKey('Tag', related_name='user_selections')
-    user = models.ForeignKey(User, related_name='tag_selections')
+    user = models.ForeignKey(django_settings.AUTH_USER_MODEL,
+                             related_name='tag_selections')
     reason = models.CharField(max_length=16, choices=TAG_MARK_REASONS)
 
     class Meta:
@@ -314,7 +317,8 @@ class TagSynonym(models.Model):
     source_tag_name = models.CharField(max_length=255, unique=True)
     target_tag_name = models.CharField(max_length=255, db_index=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    owned_by = models.ForeignKey(User, related_name='tag_synonyms')
+    owned_by = models.ForeignKey(django_settings.AUTH_USER_MODEL,
+                                 related_name='tag_synonyms')
     auto_rename_count = models.IntegerField(default=0)
     last_auto_rename_at = models.DateTimeField(auto_now=True)
     language_code = LanguageCodeField()

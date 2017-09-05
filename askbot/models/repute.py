@@ -1,8 +1,8 @@
 import datetime
 
+from django.conf import settings as django_settings
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes import generic
-from django.contrib.auth.models import User
 from django.db import models
 from django.utils.translation import ugettext as _
 from django.utils.html import escape
@@ -43,7 +43,8 @@ class Vote(models.Model):
         (VOTE_UP,   u'Up'),
         (VOTE_DOWN, u'Down'),
     )
-    user = models.ForeignKey('auth.User', related_name='askbot_votes')
+    user = models.ForeignKey(django_settings.AUTH_USER_MODEL,
+                             related_name='askbot_votes')
     voted_post = models.ForeignKey('Post', related_name='votes')
 
     vote = models.SmallIntegerField(choices=VOTE_CHOICES)
@@ -100,7 +101,8 @@ class BadgeData(models.Model):
     """Awarded for notable actions performed on the site by Users."""
     slug = models.SlugField(max_length=50, unique=True)
     awarded_count = models.PositiveIntegerField(default=0)
-    awarded_to = models.ManyToManyField(User, through='Award',
+    awarded_to = models.ManyToManyField(django_settings.AUTH_USER_MODEL,
+                                        through='Award',
                                         related_name='badges')
     # use this field if badges should be sorted
     # on the badges page in some specific ordering
@@ -150,7 +152,8 @@ class BadgeData(models.Model):
 
 class Award(models.Model):
     """The awarding of a Badge to a User."""
-    user = models.ForeignKey(User, related_name='award_user')
+    user = models.ForeignKey(django_settings.AUTH_USER_MODEL,
+                             related_name='award_user')
     badge = models.ForeignKey(BadgeData, related_name='award_badge')
     content_type = models.ForeignKey(ContentType)
     object_id = models.PositiveIntegerField()
@@ -202,7 +205,7 @@ class ReputeManager(models.Manager):
 
 class Repute(models.Model):
     """The reputation histories for user"""
-    user = models.ForeignKey(User)
+    user = models.ForeignKey(django_settings.AUTH_USER_MODEL)
     # TODO: combine positive and negative to one value
     positive = models.SmallIntegerField(default=0)
     negative = models.SmallIntegerField(default=0)

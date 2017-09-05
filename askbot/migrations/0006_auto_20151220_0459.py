@@ -31,7 +31,7 @@ def populate_primary_language(apps, schema_editor):
 
 
 def populate_claimed_localized_profiles(apps, schema_editor):
-    User = apps.get_model('auth', 'User')
+    User = apps.get_model(django_settings.AUTH_USER_MODEL)
     Profile = apps.get_model('askbot', 'UserProfile')
     users = User.objects.all()
     message = 'Marking claimed localized user profiles'

@@ -2,7 +2,7 @@ import random
 import string
 import logging
 from django.db import models
-from django.contrib.auth.models import User
+from django.conf import settings as django_settings
 from django.utils import timezone
 from django.utils.translation import ugettext as _
 from askbot.models.post import Post
@@ -67,7 +67,7 @@ class ReplyAddress(models.Model):
                                     default='auto_answer_or_comment')
     response_post = models.ForeignKey(Post, null=True,
                                       related_name='edit_addresses')
-    user = models.ForeignKey(User)
+    user = models.ForeignKey(django_settings.AUTH_USER_MODEL)
     allowed_from_email = models.EmailField(max_length=150)
     used_at = models.DateTimeField(null=True, default=None)
 

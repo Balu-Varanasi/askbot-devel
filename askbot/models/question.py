@@ -7,7 +7,7 @@ from copy import copy
 from django.conf import settings as django_settings
 from django.db import models
 from django.db.models import F
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from django.core import cache  # import cache, not from cache import cache, to be able to monkey-patch cache.cache in test cases
 from django.core import exceptions as django_exceptions
 from django.core.urlresolvers import reverse
@@ -39,6 +39,8 @@ from askbot.utils import translation as translation_utils
 from askbot.search.state_manager import DummySearchState
 
 LOG = logging.getLogger(__name__)
+
+User = get_user_model()
 
 
 def clean_tagnames(tagnames):
@@ -596,17 +598,17 @@ class Thread(models.Model):
     favourite_count = models.PositiveIntegerField(default=0)
     answer_count = models.PositiveIntegerField(default=0)
     last_activity_at = models.DateTimeField(default=timezone.now)
-    last_activity_by = models.ForeignKey(User, related_name='unused_last_active_in_threads')
+    last_activity_by = models.ForeignKey(django_settings.AUTH_USER_MODEL, related_name='unused_last_active_in_threads')
     language_code = LanguageCodeField()
 
     # TODO: these two are redundant (we used to have a "star" and "subscribe"
     # now merged into "followed")
-    followed_by = models.ManyToManyField(User, related_name='followed_threads')
-    favorited_by = models.ManyToManyField(User, through='FavoriteQuestion',
+    followed_by = models.ManyToManyField(django_settings.AUTH_USER_MODEL, related_name='followed_threads')
+    favorited_by = models.ManyToManyField(django_settings.AUTH_USER_MODEL, through='FavoriteQuestion',
                                           related_name='unused_favorite_threads')
 
     closed = models.BooleanField(default=False)
-    closed_by = models.ForeignKey(User, null=True, blank=True)  # , related_name='closed_questions')
+    closed_by = models.ForeignKey(django_settings.AUTH_USER_MODEL, null=True, blank=True)  # , related_name='closed_questions')
     closed_at = models.DateTimeField(null=True, blank=True)
     close_reason = models.SmallIntegerField(choices=const.CLOSE_REASONS,
                                             null=True,
@@ -1668,9 +1670,15 @@ class Thread(models.Model):
         last_updated_by = posts[0].author
 
         for post in posts:
-            last_updated_at, last_updated_by = max((last_updated_at, last_updated_by), (post.added_at, post.author))
+            last_updated_at, last_updated_by = max(
+                (last_updated_at, last_updated_by),
+                (post.added_at, post.author)
+            )
             if post.last_edited_at:
-                last_updated_at, last_updated_by = max((last_updated_at, last_updated_by), (post.last_edited_at, post.last_edited_by))
+                last_updated_at, last_updated_by = max(
+                    (last_updated_at, last_updated_by),
+                    (post.last_edited_at, post.last_edited_by)
+                )
 
         return last_updated_at, last_updated_by
 
@@ -1741,7 +1749,8 @@ class Thread(models.Model):
 
 class QuestionView(models.Model):
     question = models.ForeignKey('Post', related_name='viewed')
-    who = models.ForeignKey(User, related_name='question_views')
+    who = models.ForeignKey(django_settings.AUTH_USER_MODEL,
+                            related_name='question_views')
     when = models.DateTimeField()
 
     class Meta:
@@ -1749,9 +1758,10 @@ class QuestionView(models.Model):
 
 
 class FavoriteQuestion(models.Model):
-    """A favorite Question of a User."""
+    """A favorite Question of a (django_settings.AUTH_USER_MODEL."""
     thread = models.ForeignKey(Thread)
-    user = models.ForeignKey(User, related_name='user_favorite_questions')
+    user = models.ForeignKey(django_settings.AUTH_USER_MODEL,
+                             related_name='user_favorite_questions')
     added_at = models.DateTimeField(default=timezone.now)
 
     class Meta:
@@ -1771,7 +1781,7 @@ class DraftQuestion(DraftContent):
     """Provides space to solve unpublished draft
     questions. Contents is used to populate the Ask form.
     """
-    author = models.ForeignKey(User)
+    author = models.ForeignKey(django_settings.AUTH_USER_MODEL)
     title = models.CharField(max_length=300, null=True)
     tagnames = models.CharField(max_length=125, null=True)
 

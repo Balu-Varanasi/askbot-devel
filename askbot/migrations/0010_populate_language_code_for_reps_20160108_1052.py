@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
+from django.conf import settings as django_settings
 from django.db import models, migrations
 from django.db.models import Sum
 from django.utils import translation
@@ -23,7 +24,7 @@ def populate_language_in_reps(apps, schema_editor):
 
 
 def calculate_localized_reps(apps, schema_editor):
-    User = apps.get_model('auth', 'User')
+    User = apps.get_model(django_settings.AUTH_USER_MODEL)
     Profile = apps.get_model('askbot', 'LocalizedUserProfile')
     Repute = apps.get_model('askbot', 'Repute')
 

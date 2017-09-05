@@ -3,7 +3,7 @@ from askbot.models.fields import LanguageCodeField
 from django.conf import settings as django_settings
 from django.core.cache import cache
 from django.db.models.signals import post_save
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from django.db import models
 from django.utils import timezone
 from jsonfield import JSONField
@@ -12,21 +12,27 @@ from django_countries.fields import CountryField
 def get_profile_cache_key(user):
     if user.pk:
         return 'askbot-profile-{}'.format(user.pk)
-    raise ValueError('auth.models.User is not saved, cant make cache key')
+    raise ValueError('{} is not saved, cant make cache key'.format(
+        django_settings.AUTH_USER_MODEL
+    ))
 
 
 def get_localized_profile_cache_key(user, lang):
     if user.pk:
         data = {'pk': user.pk, 'lang': lang}
         return 'localized-askbot-profile-{pk}-{lang}'.format(**data)
-    raise ValueError('auth.models.User is not saved, cant make cache key')
+    raise ValueError('{} is not saved, cant make cache key'.format(
+        django_settings.AUTH_USER_MODEL
+    ))
 
 
 def get_profile_from_db(user):
     if user.pk:
         profile, junk = UserProfile.objects.get_or_create(auth_user_ptr=user)
         return profile
-    raise ValueError('auth.models.User is not saved, cant make UserProfile')
+    raise ValueError('{} is not saved, cant make UserProfile'.format(
+        django_settings.AUTH_USER_MODEL
+    ))
 
 
 def get_profile(user):
@@ -104,7 +110,7 @@ def add_profile_properties(cls):
 class UserProfile(models.Model):
     #text_search_vector           | tsvector                 | 
     auth_user_ptr = models.OneToOneField(
-                                User,
+                                django_settings.AUTH_USER_MODEL,
                                 parent_link=True,
                                 related_name='askbot_profile',
                                 primary_key=True
@@ -193,7 +199,8 @@ class UserProfile(models.Model):
 
 
 class LocalizedUserProfile(models.Model):
-    auth_user = models.ForeignKey(User, related_name='localized_askbot_profiles')
+    auth_user = models.ForeignKey(django_settings.AUTH_USER_MODEL,
+                                  related_name='localized_askbot_profiles')
     about = models.TextField(blank=True)
     language_code = LanguageCodeField(db_index=True)
     reputation = models.PositiveIntegerField(default=0, db_index=True)
@@ -228,6 +235,6 @@ def update_user_profile(instance, **kwargs):
 
 post_save.connect(
     update_user_profile,
-    sender=User,
+    sender=get_user_model(),
     dispatch_uid='update_profile_on_authuser_save'
 )

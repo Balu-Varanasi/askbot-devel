@@ -6,7 +6,6 @@ import logging
 from django.contrib.sitemaps import ping_google
 from django.utils import html
 from django.conf import settings as django_settings
-from django.contrib.auth.models import User
 from django.core import urlresolvers
 from django.db import models
 from django.utils import html as html_utils
@@ -20,6 +19,7 @@ from django.core import exceptions as django_exceptions
 from django.core import cache
 from django.core.exceptions import ValidationError
 from django.core.urlresolvers import reverse
+from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
 
 import askbot
@@ -44,6 +44,9 @@ from askbot.models.base import (AnonymousContent, BaseQuerySetManager,
 # TODO: maybe merge askbot.utils.markup and forum.utils.html
 from askbot.utils.diff import textDiff as htmldiff
 from askbot.search import mysql
+
+
+User = get_user_model()
 
 
 def default_html_moderator(post):
@@ -394,7 +397,8 @@ class Post(models.Model):
     groups = models.ManyToManyField('Group', through='PostToGroup',
                                     related_name='group_posts')
 
-    author = models.ForeignKey(User, related_name='posts')
+    author = models.ForeignKey(django_settings.AUTH_USER_MODEL,
+                               related_name='posts')
     added_at = models.DateTimeField(default=timezone.now)
 
     # endorsed == accepted as best in the case of answer
@@ -402,7 +406,8 @@ class Post(models.Model):
     # is used for the moderation
     # note: accepted answer is also denormalized on the Thread model
     endorsed = models.BooleanField(default=False, db_index=True)
-    endorsed_by = models.ForeignKey(User, null=True, blank=True,
+    endorsed_by = models.ForeignKey(django_settings.AUTH_USER_MODEL,
+                                    null=True, blank=True,
                                     related_name='endorsed_posts')
     endorsed_at = models.DateTimeField(null=True, blank=True)
 
@@ -413,14 +418,16 @@ class Post(models.Model):
 
     deleted = models.BooleanField(default=False, db_index=True)
     deleted_at = models.DateTimeField(null=True, blank=True)
-    deleted_by = models.ForeignKey(User, null=True, blank=True,
+    deleted_by = models.ForeignKey(django_settings.AUTH_USER_MODEL,
+                                   null=True, blank=True,
                                    related_name='deleted_posts')
 
     wiki = models.BooleanField(default=False)
     wikified_at = models.DateTimeField(null=True, blank=True)
 
     locked = models.BooleanField(default=False)
-    locked_by = models.ForeignKey(User, null=True, blank=True,
+    locked_by = models.ForeignKey(django_settings.AUTH_USER_MODEL,
+                                  null=True, blank=True,
                                   related_name='locked_posts')
     locked_at = models.DateTimeField(null=True, blank=True)
 
@@ -432,7 +439,9 @@ class Post(models.Model):
     offensive_flag_count = models.SmallIntegerField(default=0)
 
     last_edited_at = models.DateTimeField(null=True, blank=True)
-    last_edited_by = models.ForeignKey(User, null=True, blank=True, related_name='last_edited_posts')
+    last_edited_by = models.ForeignKey(django_settings.AUTH_USER_MODEL,
+                                       null=True, blank=True,
+                                       related_name='last_edited_posts')
 
     html = models.TextField(null=True)  # html rendition of the latest revision
     text = models.TextField(null=True)  # denormalized copy of latest revision
@@ -2178,13 +2187,14 @@ class PostRevision(models.Model):
     post = models.ForeignKey('askbot.Post', related_name='revisions',
                              null=True, blank=True)
     revision = models.PositiveIntegerField()
-    author = models.ForeignKey('auth.User', related_name='%(class)ss')
+    author = models.ForeignKey(django_settings.AUTH_USER_MODEL,
+                               related_name='%(class)ss')
     revised_at = models.DateTimeField()
     summary = models.CharField(max_length=300, blank=True)
     text = models.TextField(blank=True)
 
     approved = models.BooleanField(default=False, db_index=True)
-    approved_by = models.ForeignKey(User, null=True, blank=True)
+    approved_by = models.ForeignKey(django_settings.AUTH_USER_MODEL, null=True, blank=True)
     approved_at = models.DateTimeField(null=True, blank=True)
 
     by_email = models.BooleanField(default=False)  # true, if edited by email
@@ -2349,7 +2359,7 @@ class PostRevision(models.Model):
 
 class PostFlagReason(models.Model):
     added_at = models.DateTimeField()
-    author = models.ForeignKey('auth.User')
+    author = models.ForeignKey(django_settings.AUTH_USER_MODEL)
     title = models.CharField(max_length=128)
     details = models.ForeignKey(Post, related_name='post_reject_reasons')
 
@@ -2365,7 +2375,8 @@ class DraftAnswer(DraftContent):
     is going to ``Thread`` as it should.
     """
     thread = models.ForeignKey('Thread', related_name='draft_answers')
-    author = models.ForeignKey(User, related_name='draft_answers')
+    author = models.ForeignKey(django_settings.AUTH_USER_MODEL,
+                               related_name='draft_answers')
 
     class Meta:
         app_label = 'askbot'

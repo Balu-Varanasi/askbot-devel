@@ -1,7 +1,7 @@
 from askbot import startup_procedures
 startup_procedures.run()
 
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 
 import askbot
 import collections
@@ -80,6 +80,8 @@ from askbot.utils import functions
 from askbot import mail
 from askbot import signals
 from jsonfield import JSONField
+
+User = get_user_model()
 
 register_user_signal = partial(signals.register_generic_signal, sender=User)
 

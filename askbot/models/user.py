@@ -3,9 +3,10 @@ import logging
 import re
 from django.db import models
 from django.db.backends.dummy.base import IntegrityError
+from django.conf import settings as django_settings
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes import generic
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group as AuthGroup
 from django.core import exceptions
 from django.forms import EmailField, URLField
@@ -20,6 +21,9 @@ from askbot.models.base import BaseQuerySetManager
 from collections import defaultdict
 
 PERSONAL_GROUP_NAME_PREFIX = '_personal_'
+
+User = get_user_model()
+
 
 class InvitedModerator(object):
     """Mock user class to represent invited moderators"""
@@ -277,7 +281,7 @@ class ActivityAuditStatus(models.Model):
         (STATUS_NEW, 'new'),
         (STATUS_SEEN, 'seen')
     )
-    user = models.ForeignKey(User)
+    user = models.ForeignKey(django_settings.AUTH_USER_MODEL)
     activity = models.ForeignKey('Activity')
     status = models.SmallIntegerField(choices=STATUS_CHOICES, default=STATUS_NEW)
 
@@ -294,8 +298,8 @@ class Activity(models.Model):
     """
     We keep some history data for user activities
     """
-    user = models.ForeignKey(User)
-    recipients = models.ManyToManyField(User, through=ActivityAuditStatus, related_name='incoming_activity')
+    user = models.ForeignKey(django_settings.AUTH_USER_MODEL)
+    recipients = models.ManyToManyField(django_settings.AUTH_USER_MODEL, through=ActivityAuditStatus, related_name='incoming_activity')
     activity_type = models.SmallIntegerField(choices=const.TYPE_ACTIVITY, db_index=True)
     active_at = models.DateTimeField(default=timezone.now)
     content_type = models.ForeignKey(ContentType)
@@ -421,7 +425,7 @@ class EmailFeedSetting(models.Model):
         ('n', ugettext_lazy('No email')),
     )
 
-    subscriber = models.ForeignKey(User, related_name='notification_subscriptions')
+    subscriber = models.ForeignKey(django_settings.AUTH_USER_MODEL, related_name='notification_subscriptions')
     feed_type = models.CharField(max_length=16, choices=FEED_TYPE_CHOICES)
     frequency = models.CharField(
         max_length=8, choices=const.NOTIFICATION_DELIVERY_SCHEDULE_CHOICES,
@@ -489,7 +493,7 @@ class GroupMembership(models.Model):
     ALL_LEVEL_CHOICES = LEVEL_CHOICES + ((NONE, 'none'),)
 
     group = models.ForeignKey(AuthGroup, related_name='user_membership')
-    user = models.ForeignKey(User, related_name='group_membership')
+    user = models.ForeignKey(django_settings.AUTH_USER_MODEL, related_name='group_membership')
     level = models.SmallIntegerField(
         default=FULL, choices=LEVEL_CHOICES,)
 
@@ -771,7 +775,7 @@ class BulkTagSubscriptionManager(BaseQuerySetManager):
 class BulkTagSubscription(models.Model):
     date_added = models.DateField(auto_now_add=True)
     tags = models.ManyToManyField('Tag')
-    users = models.ManyToManyField(User)
+    users = models.ManyToManyField(django_settings.AUTH_USER_MODEL)
     groups = models.ManyToManyField(Group)
 
     objects = BulkTagSubscriptionManager()
