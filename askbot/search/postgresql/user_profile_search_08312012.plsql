@@ -20,7 +20,7 @@ BEGIN
     group_query = 
         'SELECT user_group.name as group_name ' ||
         'FROM auth_group AS user_group ' ||
-        'INNER JOIN auth_user_groups AS gm ' ||
+        'INNER JOIN accounts_user_groups AS gm ' ||
         'ON gm.user_id= ' || user_id || ' AND gm.group_id=user_group.id';
 
     tsv = to_tsvector('');
@@ -77,11 +77,11 @@ END;
 $$ LANGUAGE plpgsql;
 
 DROP TRIGGER IF EXISTS group_membership_tsv_update_trigger
-ON auth_user_groups;
+ON accounts_user_groups;
 
 CREATE TRIGGER group_membership_tsv_update_trigger
 AFTER INSERT OR DELETE
-ON auth_user_groups
+ON accounts_user_groups
 FOR EACH ROW EXECUTE PROCEDURE group_membership_tsv_update_handler();
 
 /* todo: whenever group name changes - also 
