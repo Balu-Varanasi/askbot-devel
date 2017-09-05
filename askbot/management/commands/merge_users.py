@@ -107,7 +107,7 @@ class Command(MergeUsersBaseCommand):
         self.from_user.notification_subscriptions.all().delete()
 
         #merge reputations
-        localized_profiles = LocalizedUserProfile.objects.filter(auth_user=self.from_user)
+        localized_profiles = LocalizedUserProfile.objects.filter(accounts_user=self.from_user)
         for profile in localized_profiles:
             self.to_user.receive_reputation(profile.reputation, profile.language_code)
         #delete dupes of localized profiles

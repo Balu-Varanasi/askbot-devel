@@ -36,7 +36,7 @@ BEGIN
     END LOOP;
 
     user_query = 'SELECT p.about, username, p.real_name, email ' ||
-        'FROM auth_user ' ||
+        'FROM accounts_user ' ||
         'INNER JOIN askbot_userprofile AS p ON id=p.auth_user_ptr_id ' ||
         'WHERE id=' || user_id;
     FOR onerow in EXECUTE user_query LOOP
@@ -51,14 +51,14 @@ END;
 $$ LANGUAGE plpgsql;
 
 /* create tsvector columns in the content tables */
-SELECT add_tsvector_column('text_search_vector', 'auth_user');
+SELECT add_tsvector_column('text_search_vector', 'accounts_user');
 
 /* populate tsvectors with data */
-UPDATE auth_user SET text_search_vector = get_auth_user_tsv(id);
+UPDATE accounts_user SET text_search_vector = get_auth_user_tsv(id);
 
 /* one trigger per table for tsv updates */
 
-/* set up auth_user triggers */
+/* set up accounts_user triggers */
 CREATE OR REPLACE FUNCTION auth_user_tsv_update_handler()
 RETURNS trigger AS
 $$
@@ -67,10 +67,10 @@ BEGIN
     RETURN new;
 END;
 $$ LANGUAGE plpgsql;
-DROP TRIGGER IF EXISTS auth_user_tsv_update_trigger ON auth_user;
+DROP TRIGGER IF EXISTS auth_user_tsv_update_trigger ON accounts_user;
 
 CREATE TRIGGER auth_user_tsv_update_trigger
-BEFORE INSERT OR UPDATE ON auth_user 
+BEFORE INSERT OR UPDATE ON accounts_user 
 FOR EACH ROW EXECUTE PROCEDURE auth_user_tsv_update_handler();
 
 /* localized user profile trigger */
@@ -82,10 +82,10 @@ DECLARE
     user_query text;
 BEGIN
     IF (TG_OP = 'INSERT') THEN
-        user_query = 'UPDATE auth_user SET username=username WHERE ' ||
+        user_query = 'UPDATE accounts_user SET username=username WHERE ' ||
             'id=' || new.auth_user_id;
     ELSE
-        user_query = 'UPDATE auth_user SET username=username WHERE ' ||
+        user_query = 'UPDATE accounts_user SET username=username WHERE ' ||
             'id=' || old.auth_user_id;
     END IF;
     /* just trigger the tsv update on user */
@@ -113,10 +113,10 @@ DECLARE
     user_query text;
 BEGIN
     IF (TG_OP = 'INSERT') THEN
-        user_query = 'UPDATE auth_user SET username=username WHERE ' ||
+        user_query = 'UPDATE accounts_user SET username=username WHERE ' ||
             'id=' || new.user_id;
     ELSE
-        user_query = 'UPDATE auth_user SET username=username WHERE ' ||
+        user_query = 'UPDATE accounts_user SET username=username WHERE ' ||
             'id=' || old.user_id;
     END IF;
     /* just trigger the tsv update on user */
@@ -138,5 +138,5 @@ FOR EACH ROW EXECUTE PROCEDURE group_membership_tsv_update_handler();
 
 DROP INDEX IF EXISTS auth_user_search_idx;
 
-CREATE INDEX auth_user_search_idx ON auth_user
+CREATE INDEX auth_user_search_idx ON accounts_user
 USING gin(text_search_vector);

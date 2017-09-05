@@ -27,7 +27,8 @@ def get_localized_profile_cache_key(user, lang):
 
 def get_profile_from_db(user):
     if user.pk:
-        profile, junk = UserProfile.objects.get_or_create(auth_user_ptr=user)
+        profile, junk = UserProfile.objects.get_or_create(
+            accounts_user_ptr=user)
         return profile
     raise ValueError('{} is not saved, cant make UserProfile'.format(
         django_settings.AUTH_USER_MODEL
@@ -47,7 +48,7 @@ def get_profile(user):
 
 def user_profile_property(field_name):
     """returns property that will access Askbot UserProfile
-    of auth_user by field name"""
+    of accounts_user by field name"""
     def getter(user):
         profile = get_profile(user)
         return getattr(profile, field_name)
@@ -108,24 +109,25 @@ def add_profile_properties(cls):
 
 class UserProfile(models.Model):
     #text_search_vector           | tsvector                 | 
-    auth_user_ptr = models.OneToOneField(
-                                django_settings.AUTH_USER_MODEL,
-                                parent_link=True,
-                                related_name='askbot_profile',
-                                primary_key=True
-                            )
+    accounts_user_ptr = models.OneToOneField(
+        django_settings.AUTH_USER_MODEL,
+        parent_link=True,
+        related_name='askbot_profile',
+        primary_key=True
+    )
     avatar_urls = JSONField(default={})
     status = models.CharField(
-                            max_length=2,
-                            default=const.DEFAULT_USER_STATUS,
-                            choices=const.USER_STATUS_CHOICES,
-                            db_index=True
-                        )
+        max_length=2,
+        default=const.DEFAULT_USER_STATUS,
+        choices=const.USER_STATUS_CHOICES,
+        db_index=True
+    )
     is_fake = models.BooleanField(default=False)
     email_isvalid = models.BooleanField(default=False)
     email_key = models.CharField(max_length=32, null=True)
     #hardcoded initial reputaion of 1, no setting for this one
-    reputation = models.PositiveIntegerField(default=const.MIN_REPUTATION, db_index=True)
+    reputation = models.PositiveIntegerField(
+        default=const.MIN_REPUTATION, db_index=True)
     gravatar = models.CharField(max_length=32)
     #has_custom_avatar = models.BooleanField(default=False)
     avatar_type = models.CharField(
@@ -186,7 +188,7 @@ class UserProfile(models.Model):
         app_label = 'askbot'
 
     def get_cache_key(self):
-        return get_profile_cache_key(self.auth_user_ptr)
+        return get_profile_cache_key(self.accounts_user_ptr)
 
     def update_cache(self):
         key = self.get_cache_key()
@@ -198,8 +200,8 @@ class UserProfile(models.Model):
 
 
 class LocalizedUserProfile(models.Model):
-    auth_user = models.ForeignKey(django_settings.AUTH_USER_MODEL,
-                                  related_name='localized_askbot_profiles')
+    accounts_user = models.ForeignKey(django_settings.AUTH_USER_MODEL,
+                                      related_name='localized_askbot_profiles')
     about = models.TextField(blank=True)
     language_code = LanguageCodeField(db_index=True)
     reputation = models.PositiveIntegerField(default=0, db_index=True)
@@ -213,7 +215,8 @@ class LocalizedUserProfile(models.Model):
         app_label = 'askbot'
 
     def get_cache_key(self):
-        return get_localized_profile_cache_key(self.auth_user, self.language_code)
+        return get_localized_profile_cache_key(
+            self.accounts_user, self.language_code)
 
     def get_reputation(self):
         return self.reputation + const.MIN_REPUTATION

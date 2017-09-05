@@ -21,6 +21,8 @@ class Command(NoArgsCommand):
         message = 'Rebuilding cached avatar urls'
         for user in ProgressBar(users.iterator(), count, message):
             user.init_avatar_urls()
-            UserProfile.objects.filter(auth_user_ptr=user).update(avatar_urls=user.avatar_urls)
+            UserProfile.objects.filter(
+                accounts_user_ptr=user
+            ).update(avatar_urls=user.avatar_urls)
             profile = UserProfile.objects.get(pk=user.pk)
             profile.update_cache()

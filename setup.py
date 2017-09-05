@@ -105,7 +105,7 @@ Limitations
 
 There are some limitations that will be removed in the future. If any of these cause issues - please do not hesitate to contact support@askbot.com.
 
-Askbot patches `auth_user` table. The migration script will automatically add missing columns, however it will not overwrite any existing columns. Please do back up your database before adding askbot to an existing site.
+Askbot patches `accounts_user` table. The migration script will automatically add missing columns, however it will not overwrite any existing columns. Please do back up your database before adding askbot to an existing site.
 
 Included into askbot there are two forked apps: `django_authopenid` and `livesettings`. If you have these apps on your site, you may have trouble installing askbot.
 

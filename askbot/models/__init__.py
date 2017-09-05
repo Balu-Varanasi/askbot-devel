@@ -1377,7 +1377,7 @@ def user_get_localized_profile(self):
     if not profile:
         kwargs = {
             'language_code': lang,
-            'auth_user': self
+            'accounts_user': self
         }
         profile = LocalizedUserProfile.objects.get_or_create(**kwargs)[0]
         profile.update_cache()
@@ -2709,7 +2709,7 @@ def user_set_languages(self, langs, primary=None):
 
     profile_objects = LocalizedUserProfile.objects
 
-    profiles = profile_objects.filter(auth_user=self)
+    profiles = profile_objects.filter(accounts_user=self)
     profile_langs = profiles.values_list('language_code', flat=True)
 
     profile_langs_set = set(profile_langs)
@@ -2717,14 +2717,14 @@ def user_set_languages(self, langs, primary=None):
 
     if len(langs):
         profiles = profile_objects.filter(
-                                    auth_user=self,
+                                    accounts_user=self,
                                     language_code__in=langs,
                                 )
         profiles.update(is_claimed=True)
         langs = set(profiles.values_list('language_code', flat=True))
         for lang in langs_set - profile_langs_set:
             profile_objects.create(
-                            auth_user=self,
+                            accounts_user=self,
                             language_code=lang,
                             is_claimed=True
                         )
@@ -2733,12 +2733,12 @@ def user_set_languages(self, langs, primary=None):
     removed_langs = profile_langs_set - langs_set
     if len(removed_langs):
         profiles = profile_objects.filter(
-                                    auth_user=self,
+                                    accounts_user=self,
                                     language_code__in=removed_langs
                                 )
         profiles.update(is_claimed=False)
 
-    profiles = profile_objects.filter(auth_user=self)
+    profiles = profile_objects.filter(accounts_user=self)
     for profile in profiles:
         profile.update_cache()
 
@@ -3199,7 +3199,7 @@ def user_get_flags_for_post(self, post):
 
 def user_create_email_key(self):
     email_key = generate_random_key()
-    UserProfile.objects.filter(auth_user_ptr=self).update(email_key=email_key)
+    UserProfile.objects.filter(accounts_user_ptr=self).update(email_key=email_key)
     return email_key
 
 def user_get_or_create_email_key(self):
@@ -3235,12 +3235,12 @@ def user_receive_reputation(self, num_points, language_code=None):
     #record localized user reputation - this starts with 0
     try:
         profile = LocalizedUserProfile.objects.get(
-                                            auth_user=self,
+                                            accounts_user=self,
                                             language_code=language_code
                                         )
     except LocalizedUserProfile.DoesNotExist:
         profile = LocalizedUserProfile(
-                                    auth_user=self,
+                                    accounts_user=self,
                                     language_code=language_code
                                 )
     profile.reputation = max(0, profile.reputation + num_points)
@@ -4112,7 +4112,7 @@ def moderate_group_joining(sender, instance=None, created=False, **kwargs):
 
 #this variable and the signal handler below is
 #needed to work around the issue in the django admin
-#where auth_user table editing affects group memberships
+#where accounts_user table editing affects group memberships
 GROUP_MEMBERSHIP_LEVELS = dict()
 def group_membership_changed(**kwargs):
     sender = kwargs['sender']

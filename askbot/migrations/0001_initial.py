@@ -460,7 +460,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='UserProfile',
             fields=[
-                ('auth_user_ptr', models.OneToOneField(parent_link=True, related_name='askbot_profile', primary_key=True, serialize=False, to=settings.AUTH_USER_MODEL)),
+                ('accounts_user_ptr', models.OneToOneField(parent_link=True, related_name='askbot_profile', primary_key=True, serialize=False, to=settings.AUTH_USER_MODEL)),
                 ('avatar_urls', jsonfield.fields.JSONField(default={})),
                 ('status', models.CharField(default=b'w', max_length=2, choices=[(b'd', 'administrator'), (b'm', 'moderator'), (b'a', 'approved'), (b'w', 'watched'), (b's', 'suspended'), (b'b', 'blocked')])),
                 ('is_fake', models.BooleanField(default=False)),

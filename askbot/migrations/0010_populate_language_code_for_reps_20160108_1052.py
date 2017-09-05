@@ -41,14 +41,14 @@ def calculate_localized_reps(apps, schema_editor):
         for rep in reps:
             lang = rep['language_code']
             profile, junk = Profile.objects.get_or_create(
-                                                    auth_user=user,
+                                                    accounts_user=user,
                                                     language_code=lang)
             profile.reputation = max(0, rep['positive'] + rep['negative'])
             profile.save()
 
         #recalculate the total reputation
         aggregate = Profile.objects.filter(
-                                    auth_user=user
+                                    accounts_user=user
                                 ).aggregate(reputation=Sum('reputation'))
 
         aggregate_rep = aggregate['reputation'] or 0 #dict might have 'None' value

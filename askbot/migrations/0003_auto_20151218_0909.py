@@ -20,7 +20,7 @@ def populate_localized_user_profiles(apps, schema_editor):
     message = 'creating localized user profiles, and copying "about" field'
     for profile in ProgressBar(profiles.iterator(), profiles.count(), message):
         loc_profile = LocalizedUserProfile()
-        loc_profile.auth_user = profile.auth_user_ptr
+        loc_profile.accounts_user = profile.accounts_user_ptr
         loc_profile.language_code = get_primary_language(profile)
         loc_profile.about = profile.about
         loc_profile.save()
