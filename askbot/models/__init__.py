@@ -1,8 +1,6 @@
 from askbot import startup_procedures
 startup_procedures.run()
 
-from django.contrib.auth import get_user_model
-
 import askbot
 import collections
 import datetime
@@ -81,7 +79,7 @@ from askbot import mail
 from askbot import signals
 from jsonfield import JSONField
 
-User = get_user_model()
+from accounts.models import User
 
 register_user_signal = partial(signals.register_generic_signal, sender=User)
 

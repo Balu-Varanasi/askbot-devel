@@ -19,7 +19,6 @@ from django.core import exceptions as django_exceptions
 from django.core import cache
 from django.core.exceptions import ValidationError
 from django.core.urlresolvers import reverse
-from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
 
 import askbot
@@ -45,8 +44,7 @@ from askbot.models.base import (AnonymousContent, BaseQuerySetManager,
 from askbot.utils.diff import textDiff as htmldiff
 from askbot.search import mysql
 
-
-User = get_user_model()
+from accounts.models import User
 
 
 def default_html_moderator(post):

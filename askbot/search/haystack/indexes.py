@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
-from django.contrib.auth import get_user_model
 from django.conf import settings
 from django.db.models import get_model
 
 from haystack import indexes
+
+from accounts.models import User
+
 
 from .utils import get_base_index
 
@@ -42,4 +44,4 @@ class UserIndex(get_base_index()):
     haystack_use_for_indexing = ENABLE_HAYSTACK_SEARCH
 
     def get_model(self):
-        return get_user_model()
+        return User

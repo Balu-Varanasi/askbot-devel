@@ -3,7 +3,6 @@ from askbot.models.fields import LanguageCodeField
 from django.conf import settings as django_settings
 from django.core.cache import cache
 from django.db.models.signals import post_save
-from django.contrib.auth import get_user_model
 from django.db import models
 from django.utils import timezone
 from jsonfield import JSONField
@@ -235,6 +234,6 @@ def update_user_profile(instance, **kwargs):
 
 post_save.connect(
     update_user_profile,
-    sender=get_user_model(),
+    sender=django_settings.AUTH_USER_MODEL,
     dispatch_uid='update_profile_on_authuser_save'
 )

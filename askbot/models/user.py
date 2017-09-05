@@ -6,7 +6,6 @@ from django.db.backends.dummy.base import IntegrityError
 from django.conf import settings as django_settings
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes import generic
-from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group as AuthGroup
 from django.core import exceptions
 from django.forms import EmailField, URLField
@@ -20,9 +19,11 @@ from askbot.utils import functions
 from askbot.models.base import BaseQuerySetManager
 from collections import defaultdict
 
+from accounts.models import User
+
 PERSONAL_GROUP_NAME_PREFIX = '_personal_'
 
-User = get_user_model()
+
 
 
 class InvitedModerator(object):
