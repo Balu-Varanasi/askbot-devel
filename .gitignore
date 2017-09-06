@@ -17,6 +17,7 @@ settings_local.py
 settings.py
 .idea
 .coverage
+.venv
 *.iml
 lint
 env
