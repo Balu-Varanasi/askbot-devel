@@ -29,7 +29,7 @@ BEGIN
     END LOOP;
 
     user_about_query = 'SELECT about FROM askbot_localizeduserprofile ' ||
-        'WHERE auth_user_id=' || user_id;
+        'WHERE accounts_user_id=' || user_id;
 
     FOR onerow in EXECUTE user_about_query LOOP
         tsv = tsv || to_tsvector(onerow.about);
@@ -82,10 +82,10 @@ DECLARE
 BEGIN
     IF (TG_OP = 'INSERT') THEN
         user_query = 'UPDATE accounts_user SET username=username WHERE ' ||
-            'id=' || new.auth_user_id;
+            'id=' || new.accounts_user_id;
     ELSE
         user_query = 'UPDATE accounts_user SET username=username WHERE ' ||
-            'id=' || old.auth_user_id;
+            'id=' || old.accounts_user_id;
     END IF;
     /* just trigger the tsv update on user */
     EXECUTE user_query;
