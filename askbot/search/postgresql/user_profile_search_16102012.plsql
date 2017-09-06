@@ -8,7 +8,7 @@ the searched fields are:
 2) user profile
 3) group names - for groups to which user belongs
 */
-CREATE OR REPLACE FUNCTION get_auth_user_tsv(user_id integer)
+CREATE OR REPLACE FUNCTION get_accounts_user_tsv(user_id integer)
 RETURNS tsvector AS
 $$
 DECLARE
@@ -40,24 +40,24 @@ $$ LANGUAGE plpgsql;
 SELECT add_tsvector_column('text_search_vector', 'accounts_user');
 
 /* populate tsvectors with data */
-UPDATE accounts_user SET text_search_vector = get_auth_user_tsv(id);
+UPDATE accounts_user SET text_search_vector = get_accounts_user_tsv(id);
 
 /* one trigger per table for tsv updates */
 
 /* set up accounts_user triggers */
-CREATE OR REPLACE FUNCTION auth_user_tsv_update_handler()
+CREATE OR REPLACE FUNCTION accounts_user_tsv_update_handler()
 RETURNS trigger AS
 $$
 BEGIN
-    new.text_search_vector = get_auth_user_tsv(new.id);
+    new.text_search_vector = get_accounts_user_tsv(new.id);
     RETURN new;
 END;
 $$ LANGUAGE plpgsql;
-DROP TRIGGER IF EXISTS auth_user_tsv_update_trigger ON accounts_user;
+DROP TRIGGER IF EXISTS accounts_user_tsv_update_trigger ON accounts_user;
 
-CREATE TRIGGER auth_user_tsv_update_trigger
+CREATE TRIGGER accounts_user_tsv_update_trigger
 BEFORE INSERT OR UPDATE ON accounts_user 
-FOR EACH ROW EXECUTE PROCEDURE auth_user_tsv_update_handler();
+FOR EACH ROW EXECUTE PROCEDURE accounts_user_tsv_update_handler();
 
 /* group membership trigger - reindex users when group membership
  * changes */
@@ -92,7 +92,7 @@ FOR EACH ROW EXECUTE PROCEDURE group_membership_tsv_update_handler();
 /* todo: whenever group name changes - also 
  * reindex users belonging to the group */
 
-DROP INDEX IF EXISTS auth_user_search_idx;
+DROP INDEX IF EXISTS accounts_user_search_idx;
 
-CREATE INDEX auth_user_search_idx ON accounts_user
+CREATE INDEX accounts_user_search_idx ON accounts_user
 USING gin(text_search_vector);
