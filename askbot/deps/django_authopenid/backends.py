@@ -4,7 +4,6 @@ application
 """
 import datetime
 import logging
-from django.contrib.auth.models import User
 from django.core.exceptions import ImproperlyConfigured
 from django.conf import settings as django_settings
 from django.utils import timezone
@@ -15,6 +14,8 @@ from askbot.deps.django_authopenid.ldap_auth import ldap_authenticate
 from askbot.deps.django_authopenid.ldap_auth import ldap_create_user
 from askbot.conf import settings as askbot_settings
 from askbot.signals import user_registered
+
+from accounts.models import User
 
 LOG = logging.getLogger(__name__)
 
